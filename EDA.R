@@ -39,6 +39,7 @@ library(dplyr)
 library(ggplot2)
 library(tidyr)
 library(lubridate)
+library(slider)
 
 # Load data
 customers      <- read.csv("MavenMarket CSV Files/CSV Files/MavenMarket_Customers.csv")
@@ -94,6 +95,13 @@ ggplot(returns) + geom_bar(mapping=aes(x=month)) + labs(x="Month", y="Return Cou
 # Plots for transaction quantities by month
 return_quantities <- aggregate(returns$quantity, by=list(Category=returns$month), FUN=sum)
 ggplot(return_quantities) + geom_bar(mapping=aes(x=Category, y=x), stat="identity") + labs(x="Month", y="Return Quantity") + ggtitle("Total Items Returned (accounting for quantity)")
+
+# Summary Statistics
+rolling_avg <- slide(return_quantities$x, mean, .before = 1, .after = 1)
+month_names <- c("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December")
+for(i in 1:length(rolling_avg)){
+  print(paste(month_names[i], "rolling average:", rolling_avg[i]))
+}
 
 
 # Add purchase columns (takes a long time to run!)
