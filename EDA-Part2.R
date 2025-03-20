@@ -36,6 +36,8 @@ rate_of_return_pid$rate <- (rate_of_return_pid$x.x / rate_of_return_pid$x.y) * 1
 rate_of_return_pid <- arrange(rate_of_return_pid, rate)
 ggplot(rate_of_return_pid) + geom_bar(mapping=aes(x=Category, y=rate), stat="identity") + labs(x="Product ID", y="Rate of Return (%)") + ggtitle("Rate of Return (%) by Product ID")
 
+ggplot(rate_of_return_pid) + geom_bar(mapping=aes(x=reorder(Category, rate), y=rate), stat="identity") + labs(x="Product ID", y="Rate of Return (%)") + ggtitle("Arranged Rate of Return (%) by Product ID")
+
 # Return rate by Store ID
 return_store_quantities <- aggregate(returns$quantity, by=list(Category=returns$store_id), FUN=sum)
 store_sales <- aggregate(transactions$quantity, by=list(Category=transactions$store_id), FUN=sum)
