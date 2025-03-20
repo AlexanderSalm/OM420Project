@@ -1,5 +1,8 @@
 #source("DataCleaning.R")
 
+# Clear all plots
+try(dev.off(dev.list()["RStudioGD"]), silent=TRUE)
+
 # Transactions by Month
 #ggplot(transactions) + geom_bar(mapping=aes(x=month)) + labs(x="Month", y="Transaction Count") + ggtitle("Individual transactions (not accounting for quantity)")\
 transaction_quantities <- aggregate(transactions$quantity, by=list(Category=transactions$month), FUN=sum)
@@ -32,6 +35,16 @@ rate_of_return_pid <- merge(x = return_pid_quantities, y = products_sold, by = "
 rate_of_return_pid$rate <- (rate_of_return_pid$x.x / rate_of_return_pid$x.y) * 100
 rate_of_return_pid <- arrange(rate_of_return_pid, rate)
 ggplot(rate_of_return_pid) + geom_bar(mapping=aes(x=Category, y=rate), stat="identity") + labs(x="Product ID", y="Rate of Return (%)") + ggtitle("Rate of Return (%) by Product ID")
+
+# Return rate by Store ID
+return_store_quantities <- aggregate(returns$quantity, by=list(Category=returns$store_id), FUN=sum)
+store_sales <- aggregate(transactions$quantity, by=list(Category=transactions$store_id), FUN=sum)
+rate_of_return_store <- merge(x = return_store_quantities, y = store_sales, by = "Category", all = TRUE)
+rate_of_return_store$rate <- (rate_of_return_store$x.x / rate_of_return_store$x.y) * 100
+ggplot(rate_of_return_store) + geom_bar(mapping=aes(x=Category, y=rate), stat="identity") + labs(x="Store", y="Return Rate (%)") + ggtitle("Rate of return (%) by Store")
+
+
+
 
 
 
