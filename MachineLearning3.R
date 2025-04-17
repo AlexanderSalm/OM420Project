@@ -6,83 +6,86 @@ library(dplyr)
 library(lubridate)
 library(rpart)
 library(rpart.plot)
+library(ggplot2)
 
 # Load
-tx_97 <- read.csv("MavenMarket CSV Files/CSV Files/MavenMarket_Transactions_1997.csv")
-tx_98 <- read.csv("MavenMarket CSV Files/CSV Files/MavenMarket_Transactions_1998.csv")
-returns <- read.csv("MavenMarket CSV Files/CSV Files/MavenMarket_Returns_1997-1998.csv")
-products <- read.csv("MavenMarket CSV Files/CSV Files/MavenMarket_Products.csv")
-stores <- read.csv("MavenMarket CSV Files/CSV Files/MavenMarket_Stores.csv")
-regions <- read.csv("MavenMarket CSV Files/CSV Files/MavenMarket_Regions.csv")
-customers <- read.csv("MavenMarket CSV Files/CSV Files/MavenMarket_Customers.csv")
+#tx_97 <- read.csv("MavenMarket CSV Files/CSV Files/MavenMarket_Transactions_1997.csv")
+#tx_98 <- read.csv("MavenMarket CSV Files/CSV Files/MavenMarket_Transactions_1998.csv")
+#returns <- read.csv("MavenMarket CSV Files/CSV Files/MavenMarket_Returns_1997-1998.csv")
+#products <- read.csv("MavenMarket CSV Files/CSV Files/MavenMarket_Products.csv")
+#stores <- read.csv("MavenMarket CSV Files/CSV Files/MavenMarket_Stores.csv")
+#regions <- read.csv("MavenMarket CSV Files/CSV Files/MavenMarket_Regions.csv")
+#customers <- read.csv("MavenMarket CSV Files/CSV Files/MavenMarket_Customers.csv")
 
 # Combine tx
-transactions <- bind_rows(tx_97, tx_98) %>%
-  mutate(transaction_date = mdy(transaction_date),
-         key = paste(product_id, store_id))
+#transactions <- bind_rows(tx_97, tx_98) %>%
+#  mutate(transaction_date = mdy(transaction_date),
+#         key = paste(product_id, store_id))
 
 # returns key
-returns <- returns %>%
-  mutate(return_date = mdy(return_date),
-         key = paste(product_id, store_id))
+#returns <- returns %>%
+#  mutate(return_date = mdy(return_date),
+#         key = paste(product_id, store_id))
 
 # left join key
-returns_short <- returns %>% select(key, return_date)
-transactions <- left_join(transactions, returns_short, by = "key")
+#returns_short <- returns %>% select(key, return_date)
+#transactions <- left_join(transactions, returns_short, by = "key")
 
 # label returns
-transactions <- transactions %>%
-  mutate(
-    Returned = ifelse(!is.na(return_date), 1, 0)
-  ) %>%
-  select(-return_date, -key)
+#transactions <- transactions %>%
+#  mutate(
+#    Returned = ifelse(!is.na(return_date), 1, 0)
+#  ) %>%
+#  select(-return_date, -key)
 
 # Make final dataset
-transactions <- transactions %>%
-  left_join(products, by = "product_id") %>%
-  left_join(stores, by = "store_id") %>%
-  left_join(regions, by = "region_id") %>%
-  left_join(customers, by = "customer_id")
+#transactions <- transactions %>%
+#  left_join(products, by = "product_id") %>%
+#  left_join(stores, by = "store_id") %>%
+#  left_join(regions, by = "region_id") %>%
+#  left_join(customers, by = "customer_id")
 
 # Feature engineering. We want to create a variable for season, profit margin, and store age.
-transactions <- transactions %>%
-  mutate(
-    season = quarter(transaction_date),
-    profit_margin = product_retail_price - product_cost,
-    store_age = as.numeric(difftime(transaction_date, mdy(first_opened_date), units = "days"))
-  )
+#transactions <- transactions %>%
+#  mutate(
+#    season = quarter(transaction_date),
+#    profit_margin = product_retail_price - product_cost,
+#    store_age = as.numeric(difftime(transaction_date, mdy(first_opened_date), units = "days"))
+#  )
 
 # Final model dataset
-model_data <- transactions %>%
-  select(
-    Returned, quantity, season, product_brand, product_retail_price, product_cost, profit_margin, product_weight, store_type, total_sqft, grocery_sqft, sales_district, sales_region, store_age, gender, marital_status, yearly_income, total_children, num_children_at_home, education, homeowner
-  ) %>%
-  na.omit()
+#model_data <- transactions %>%
+#  select(
+#    Returned, quantity, season, product_brand, product_retail_price, product_cost, profit_margin, product_weight, store_type, total_sqft, grocery_sqft, sales_district, #sales_region, store_age, gender, marital_status, yearly_income, total_children, num_children_at_home, education, homeowner
+#  ) %>%
+#  na.omit()
 
-library(randomForest)
+#library(randomForest)
 
 # Convert character columns to factors
-model_data <- mutate_if(model_data, is.character, as.factor)
-model_data <- model_data %>% 
-  mutate(
-    Returned = as.factor(Returned),
-    season = as.factor(season),
-    total_children = as.factor(total_children),
-    num_children_at_home = as.factor(num_children_at_home)
-  )
+#model_data <- mutate_if(model_data, is.character, as.factor)
+#model_data <- model_data %>% 
+#  mutate(
+#    Returned = as.factor(Returned),
+#    season = as.factor(season),
+#    total_children = as.factor(total_children),
+#    num_children_at_home = as.factor(num_children_at_home)
+#  )
 
 # frequency of each brand
-brand_counts <- table(model_data$product_brand)
+#brand_counts <- table(model_data$product_brand)
 # RF only handles up to 50 categories, let's select top 50
-top_brands <- names(sort(brand_counts, decreasing = TRUE))[1:50]
+#top_brands <- names(sort(brand_counts, decreasing = TRUE))[1:50]
 
 # keep top brands, label the rest as "Other"
-model_data <- model_data %>%
-  mutate(product_brand = ifelse(product_brand %in% top_brands, as.character(product_brand), "Other")) %>%
-  mutate(product_brand = as.factor(product_brand))
+#model_data <- model_data %>%
+#  mutate(product_brand = ifelse(product_brand %in% top_brands, as.character(product_brand), "Other")) %>%
+#  mutate(product_brand = as.factor(product_brand))
 
 # Only use the agreed on variables as predictors
-model_data <- model_data %>% select(Returned, product_brand, sales_district, profit_margin, product_cost, product_retail_price, product_weight, yearly_income, education, num_children_at_home, season, store_age, quantity)
+#model_data <- model_data %>% select(Returned, product_brand, sales_district, profit_margin, product_cost, product_retail_price, product_weight, yearly_income, education, num_children_at_home, season, store_age, quantity)
+
+model_data <- read.csv("revised_data.csv")
 
 # First split: 70% training, 30% remaining
 set.seed(123)

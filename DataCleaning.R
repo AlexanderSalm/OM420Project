@@ -102,6 +102,7 @@ products_sold <- aggregate(transactions$quantity, by=list(Category=transactions$
 rate_of_return_pid <- merge(x = return_pid_quantities, y = products_sold, by = "Category", all = TRUE)
 rate_of_return_pid$rate <- (rate_of_return_pid$x.x / rate_of_return_pid$x.y) * 100
 rate_of_return_pid <- arrange(rate_of_return_pid, rate)
+rate_of_return_pid <- rate_of_return_pid[complete.cases(rate_of_return_pid),]
 
 return_store_quantities <- aggregate(returns$quantity, by=list(Category=returns$store_id), FUN=sum)
 returns_quantity_factor <- returns
@@ -110,7 +111,6 @@ returns_quantity_factor$quantity <- factor(returns_quantity_factor$quantity)
 store_sales <- aggregate(transactions$quantity, by=list(Category=transactions$store_id), FUN=sum)
 rate_of_return_store <- merge(x = return_store_quantities, y = store_sales, by = "Category", all = TRUE)
 rate_of_return_store$rate <- (rate_of_return_store$x.x / rate_of_return_store$x.y) * 100
-
 
 
 finished_cleaning_flag <- T

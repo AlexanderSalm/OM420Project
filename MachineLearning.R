@@ -81,7 +81,7 @@ for (ii in 1:n_tree){
   
   # Store the number of nodes in the pruned tree 
   df_res[ii, 'nbr_node'] <- nrow(pruned.tree$frame)
-} 
+}
 
 # Print the computed validation error rates
 df_res[, 'error_rates_val']
@@ -98,6 +98,8 @@ RowNum <- min(which(fit$cptable[, "xerror"] < benchmark))
 opt <- fit$cptable[RowNum, "CP"]
 opt_fit <- prune(fit, cp = opt)
 opt_pred <- predict(opt_fit, data_test, type = "class")
+
+rpart.plot(opt_fit)
 
 # Print results
 confusion_matrix <- table(data_test$is_return, opt_pred)
